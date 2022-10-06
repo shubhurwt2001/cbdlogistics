@@ -1,0 +1,36 @@
+.table-img {
+    max-width: 100px;
+    max-height: 100px;
+}
+
+.prod-image {
+    border: 1px solid;
+    position: relative;
+}
+
+.prod-image i {
+    position: absolute;
+    top: 0;
+    right: 0;
+    cursor: pointer;
+    z-index: 999;
+}
+
+.mw-25 {
+    max-width: 25%;
+}
+
+.itemClip {
+    position: absolute;
+    background-color: white;
+    opacity: 1;
+    top: 0;
+    left: 0;
+    transform: translate(-50%, -50%);
+    transition: none;
+    background-color: white;
+}
+
+.select2-selection__choice {
+    color: #111!important;
+}
