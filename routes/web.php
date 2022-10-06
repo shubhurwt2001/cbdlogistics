@@ -21,9 +21,9 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-Route::get('/upload_data', function () {
-    return view('welcome');
-});
+// Route::get('/upload_data', function () {
+//     return view('welcome');
+// });
 
 Route::post('/submit-data', [Controller::class, 'submit']);
 
