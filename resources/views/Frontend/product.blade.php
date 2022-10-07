@@ -78,7 +78,7 @@ $currency = session()->get('currency') ? session()->get('currency') : 'eur';
                     @endforeach
                     <ul class="pro-wight">
                         @foreach($prod_attributes as $attribute)
-                        <li><a href="javascript:void(0)" @if($loop->iteration == 1) class="active" @endif>{{$attribute->name}} {{$attr['name_'.$locale]}}</a></li>
+                        <li><a href="javascript:void(0)" data-val="{{$attribute->id}}" class="attribute" @if($loop->iteration == 1) class="active" @endif>{{$attribute->name}} {{$attr['name_'.$locale]}}</a></li>
                         @endforeach
                     </ul>
                 </div>
@@ -88,14 +88,14 @@ $currency = session()->get('currency') ? session()->get('currency') : 'eur';
                     <div class="plus-minus">
                         <span>
                             <a href="javascript:void(0)" class="minus-btn text-black">-</a>
-                            <input type="text" name="name" value="1">
+                            <input type="text" name="name" id="quantity" value="1">
                             <a href="javascript:void(0)" class="plus-btn text-black">+</a>
                         </span>
                     </div>
                 </div>
                 <div class="pro-btn">
-                    <a href="wishlist.html" class="btn btn-style1"><i class="fa fa-heart"></i></a>
-                    <a href="cart.html" class="btn btn-style1"><i class="fa fa-shopping-bag"></i> Add to cart</a>
+                    <a href="javascript:void(0)" onclick="wishlist('{{$product->id}}','add')" class="btn btn-style1"><i class="fa fa-heart"></i></a>
+                    <a href="javascript:void(0)" onclick="addToCart()" class="btn btn-style1"><i class="fa fa-shopping-bag"></i> Add to cart</a>
                 </div>
                 <div class="pay-img">
                     <a href="javascript:void(0)">
@@ -205,4 +205,28 @@ $currency = session()->get('currency') ? session()->get('currency') : 'eur';
     </div>
 </section>
 <!-- product page tab end -->
+@section('scripts')
+<script>
+    var product = <?php echo json_encode($product->id); ?>;
+    var attribute = null;
+    $(document).on('click', '.attribute', function() {
+        attribute = null;
+        $('.attribute').map(function() {
+            $(this).removeClass('active')
+        })
+        $(this).addClass('active');
+        attribute = $(this).attr('data-val')
+    })
+
+    function addToCart() {
+        if (attribute > 0) {
+            cart(product, 'add', attribute, $('#quantity').val())
+        } else {
+            alert("Please select a quantity.");
+        }
+
+    }
+</script>
+
+@endsection
 @endsection

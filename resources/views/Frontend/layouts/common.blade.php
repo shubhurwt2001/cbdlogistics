@@ -39,6 +39,46 @@
     }else{
     $currency = session()->get('currency');
     };
+
+
+    if(!Auth::check()){
+    $items = session()->get('cart',[]);
+    }else{
+    $items = [];
+    }
+
+
+
+    $cartProducts = [];
+    $cartSubtotal['chf'] = 0;
+    $cartSubtotal['eur'] = 0;
+    $cartSubtotal['usd'] = 0;
+    $cartSubtotal['rub'] = 0;
+
+    foreach($items as $item){
+    $product = App\Models\Product::where('id', $item->product)->first();
+
+    if($product){
+    $product->cart_id = $item->id;
+    $product->cart_quantity = $item->quantity;
+    $product->images = App\Models\ProductImage::where('product_id', $item->product)->orderBy('sort', 'ASC')->get();
+    $product->attribute = $item->attribute;
+
+    if($product->attribute){
+    $product->price_chf = App\Models\ProductAttribute::where('id', $product->attribute)->first()->price_chf;
+    $product->price_usd = App\Models\ProductAttribute::where('id', $product->attribute)->first()->price_usd;
+    $product->price_eur = App\Models\ProductAttribute::where('id', $product->attribute)->first()->price_eur;
+    $product->price_rub = App\Models\ProductAttribute::where('id', $product->attribute)->first()->price_rub;
+    }
+
+    $cartSubtotal['chf'] = $cartSubtotal['chf'] + $product->cart_quantity * $product->price_chf;
+    $cartSubtotal['eur'] = $cartSubtotal['eur'] + $product->cart_quantity * $product->price_eur;
+    $cartSubtotal['usd'] = $cartSubtotal['usd'] + $product->cart_quantity * $product->price_usd;
+    $cartSubtotal['rub'] = $cartSubtotal['rub'] + $product->cart_quantity * $product->price_rub;
+    $cartProducts[] = $product;
+    }
+
+    }
     @endphp
     <section class="top-4">
         <div class="container">
@@ -159,7 +199,7 @@
                                                         @else
                                                         <span id="cart-total" class="bigcounter">{{count(session()->get('cart',[]))}}</span>
                                                         @endif
-                                                        <span class="cart-price">CHF 770.48</span>
+                                                        <span class="cart-price" id="cart_total_header">{{$currency}} {{$cartSubtotal[$currency]}}</span>
                                                     </span>
                                                 </a>
                                             </div>
@@ -361,61 +401,50 @@
             <div class="cart-item-title">
                 <p>
                     <span class="cart-count-desc">There are</span>
-                    <span class="cart-count-item bigcounter">4</span>
+                    <span class="cart-count-item bigcounter">{{count($cartProducts)}}</span>
                     <span class="cart-count-desc">Products</span>
                 </p>
             </div>
+
             <ul class="cart-item-loop">
+                @foreach($cartProducts as $product)
                 <li class="cart-item">
                     <div class="cart-img">
-                        <a href="#">
-                            <img src="image/product1.jpg" alt="cart-image" class="img-fluid">
+                        <a href="{{url($product['slug_'.$locale])}}">
+                            @foreach($product->images as $image)
+                            @if($loop->iteration == 1)
+                            <img src="{{asset('public'.$image['slug_'.$locale])}}" alt="cart-image" class="img-fluid">
+                            @endif
+                            @endforeach
                         </a>
                     </div>
                     <div class="cart-title">
-                        <h6><a href="#">Fresh apple 5kg</a></h6>
+                        <h6><a href="{{url($product['slug_'.$locale])}}">{{$product['name_'.$locale]}}</a></h6>
                         <div class="cart-pro-info">
                             <div class="cart-qty-price">
-                                <span class="quantity">1 x </span>
-                                <span class="price-box">CHF 250.00</span>
+                                <span class="quantity">{{$product->cart_quantity}} x </span>
+                                <span class="price-box">{{$currency}} {{$product['price_'.$currency]}}</span>
                             </div>
                             <div class="delete-item-cart">
-                                <a href="#"><i class="icon-trash icons"></i></a>
+                                <a href="javascript:void(0)" onclick="cart('{{$product->cart_id}}','remove','')"><i class="icon-trash icons"></i></a>
                             </div>
                         </div>
                     </div>
                 </li>
-                <li class="cart-item">
-                    <div class="cart-img">
-                        <a href="#">
-                            <img src="image/product2.jpg" alt="cart-image" class="img-fluid">
-                        </a>
-                    </div>
-                    <div class="cart-title">
-                        <h6><a href="#">Natural grassbean 4kg</a></h6>
-                        <div class="cart-pro-info">
-                            <div class="cart-qty-price">
-                                <span class="quantity">1 x </span>
-                                <span class="price-box">CHF 300.00</span>
-                            </div>
-                            <div class="delete-item-cart">
-                                <a href="#"><i class="icon-trash icons"></i></a>
-                            </div>
-                        </div>
-                    </div>
-                </li>
+                @endforeach
             </ul>
+
             <ul class="subtotal-title-area">
                 <li class="subtotal-info">
                     <div class="subtotal-titles">
                         <h6>Sub total:</h6>
-                        <span class="subtotal-price">CHF 750.00</span>
+                        <span class="subtotal-price">{{$currency}} {{$cartSubtotal[$currency]}}</span>
                     </div>
                 </li>
                 <li class="mini-cart-btns">
                     <div class="cart-btns">
-                        <a href="#" class="btn btn-style2"><span>View cart</span></a>
-                        <a href="#" class="btn btn-style2"><span>Checkout</span></a>
+                        <a href="{{url('cart')}}" class="btn btn-style2"><span>View cart</span></a>
+                        <!-- <a href="#" class="btn btn-style2"><span>Checkout</span></a> -->
                     </div>
                 </li>
             </ul>
@@ -675,21 +704,23 @@
         }
 
 
-        function cart(id, type, attributes) {
+        function cart(id, type, attribute, quantity = null) {
             $.ajax({
                 type: "POST",
                 data: {
                     type: type,
                     product_id: id,
-                    attributes: attributes,
+                    attribute: attribute,
+                    quantity: quantity,
                     _token: "{{csrf_token()}}"
                 },
                 url: '{{route("cart")}}',
                 success: function(data) {
                     alert(data.message)
                     $('#cart-total').html(data.count)
-                    // $(`#remove_wishlist_${id}`).remove()
-                    // $('.wishlist-items').html(`${data.count} Item`)
+                    $(`#remove_cart_${id}`).remove()
+                    $('.c-items').html(`${data.count} Item`)
+                    window.location.reload()
                 },
                 error: function(err) {
                     console.log(err);
@@ -698,6 +729,8 @@
             })
         }
     </script>
+
+    @yield('scripts')
 </body>
 
 </html>

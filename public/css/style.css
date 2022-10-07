@@ -883,6 +883,7 @@ button.navbar-toggler span.line::after {
 
 .mini-cart ul.cart-item-loop li.cart-item .cart-title .cart-pro-info .cart-qty-price span.price-box {
     font-weight: 600;
+    text-transform: uppercase;
 }
 
 .mini-cart ul.subtotal-title-area {
@@ -913,6 +914,7 @@ button.navbar-toggler span.line::after {
     color: #f5ab1e;
     margin-top: 0;
     font-weight: 600;
+    text-transform: uppercase;
 }
 
 .mini-cart ul.subtotal-title-area li.mini-cart-btns {
@@ -3068,7 +3070,9 @@ a.scroll:hover span {
 
 .cart-area .cart-details .cart-all-pro .cart-pro .pro-details span.pro-size {
     margin-top: 10px;
-    display: block;
+    display: flex;
+    align-items: center;
+    gap: 10px;
     line-height: 1;
 }
 
@@ -3193,6 +3197,11 @@ a.scroll:hover span {
 
 .cart-total .cart-price span.total {
     font-weight: 600;
+    text-transform: uppercase;
+}
+
+.cart-price {
+    text-transform: uppercase;
 }
 
 .cart-total .cart-info h4 {
@@ -3253,6 +3262,7 @@ a.scroll:hover span {
 
 .cart-total .shop-total span.total-amount {
     font-weight: 600;
+    text-transform: uppercase;
 }
 
 .cart-total a.check-link {
