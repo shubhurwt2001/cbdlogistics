@@ -180,8 +180,8 @@ $currency = session()->get('currency') ? session()->get('currency') : 'eur';
                     <div class="quick-caption">
                         <h4>{{$product['name_'.$locale]}}</h4>
                         <div class="quick-price">
-                            <span class="new-price">{{$currency}} {{$product['price_'.$currency]}}</span>
-                            <span class="old-price"><del>CHF 399.99</del></span>
+                            <span class="new-price" id="prod_price_{{$product->id}}">{{$currency}} {{$product['price_'.$currency]}}</span>
+                            <!-- <span class="old-price"><del>{{$currency}} 399.99</del></span> -->
                         </div>
                         <div class="quick-rating">
                             <i class="fa fa-star c-star"></i>
@@ -193,21 +193,30 @@ $currency = session()->get('currency') ? session()->get('currency') : 'eur';
                         <div class="pro-description">
                             <p>{!! $product['short_desc_'.$locale] !!}</p>
                         </div>
+
+
+                        @foreach($product->attributes as $key => $prod_attributes)
                         <div class="pro-size">
-                            <label>millilitres: </label>
-                            <select>
-                                <option>200</option>
-                                <option>400</option>
-                                <option>500</option>
+                            @foreach($attributes as $attr)
+                            @if($attr->id == $key)
+                            <label>{{$attr['name_'.$locale]}}: </label>
+                            @endif
+                            @endforeach
+                            <select data-pro="{{$product->id}}" data-cat="{{$category->id}}" id="attribute_{{$product->id}}" class="attribute">
+                                <option value="" disabled selected>Select</option>
+                                @foreach($prod_attributes as $attribute)
+                                <option value="{{$attribute->id}}">{{$attribute->name}}</option>
+                                @endforeach
                             </select>
                         </div>
+                        @endforeach
                         <div class="plus-minus">
                             <span>
                                 <a href="javascript:void(0)" class="minus-btn text-black">-</a>
-                                <input type="text" name="name" value="1">
+                                <input type="number" class="quantity" name="name" id="quantity_{{$product->id}}" value="1">
                                 <a href="javascript:void(0)" class="plus-btn text-black">+</a>
                             </span>
-                            <a href="#" class="quick-cart"><i class="fa fa-shopping-bag"></i></a>
+                            <a href="javascript:void(0)" data-val="{{$product->id}}" class="quick-cart"><i class="fa fa-shopping-bag"></i></a>
                             <a href="javascript:void(0)" onclick="wishlist('{{$product->id}}','add')" class="quick-wishlist"><i class="fa fa-heart"></i></a>
                         </div>
                     </div>
@@ -376,4 +385,47 @@ $currency = session()->get('currency') ? session()->get('currency') : 'eur';
     </div>
 </section>
 <!-- category image end -->
+@section('scripts')
+<script>
+    var categories = <?php echo json_encode($categories); ?>;
+    var currency = <?php echo json_encode($currency); ?>;
+    $(document).on('change', '.attribute', function() {
+        var attribute = $(this).val();
+        var product = $(this).attr('data-pro')
+        var category = $(this).attr('data-cat')
+
+        categories.map(function(cat) {
+            if (cat.id == category) {
+                cat.products.map(function(pro) {
+                    if (pro.id == product) {
+                        pro.allAttributes.map(function(attr) {
+                            if (attr.id == attribute) {
+                                $(`#prod_price_${product}`).html(`${currency} ${parseFloat(attr['price_'+currency]*$(`#quantity_${product}`).val()).toFixed(2)}`)
+                            }
+                        })
+                    }
+                })
+            }
+        })
+    })
+
+    $(document).on('click', '.quick-cart', function() {
+        var product = $(this).attr('data-val');
+        var quantity = $(`#quantity_${product}`).val();
+        var attribute = $(`#attribute_${product}`).val();
+
+        if (quantity <= 0) {
+            alert("Minimum quantity should be 1.")
+            return
+        }
+
+        if (!attribute) {
+            alert("Please select a quantity.")
+            return
+        }
+
+        cart(product, 'add', attribute, quantity);
+    })
+</script>
+@endsection
 @endsection

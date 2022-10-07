@@ -3,11 +3,13 @@
 namespace App\Http\Controllers\Frontend;
 
 use App\Http\Controllers\Controller;
+use App\Models\Attribute;
 use App\Models\Banner;
 use App\Models\Category;
 use App\Models\Faq;
 use App\Models\Page;
 use App\Models\Product;
+use App\Models\ProductAttribute;
 use App\Models\ProductImage;
 use App\Models\Subcategory;
 use Exception;
@@ -27,10 +29,13 @@ class HomeController extends Controller
             $cat->products = Product::where(['status' => 1, 'category_id' => $cat->id])->get();
             foreach ($cat->products as $product) {
                 $product->images = ProductImage::where('product_id', $product->id)->orderBy('sort', 'ASC')->get();
+                $product->attributes = ProductAttribute::where(['status' => 1, 'deleted' => 0, 'product_id' => $product->id])->get()->groupBy('attribute_id');
+                $product->allAttributes =  ProductAttribute::where(['status' => 1, 'deleted' => 0, 'product_id' => $product->id])->get();
             }
         }
+        $attributes = Attribute::where(['status' => 1, 'deleted' => 0])->get();
         $pages = Page::where(['status' => 1, 'in_menu' => 1])->get();
-        return view('Frontend.home', compact('banners', 'categories', 'pages'));
+        return view('Frontend.home', compact('banners', 'categories', 'pages', 'attributes'));
     }
 
 
